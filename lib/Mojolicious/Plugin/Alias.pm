@@ -1,6 +1,3 @@
-# Copyright (C) 2010, Dotan Dimet, based on MojoX::Dispatcher::Static,
-# copyright by Sebastian Riedel.
-
 package Mojolicious::Plugin::Alias;
 
 use base Mojolicious::Plugin;
@@ -119,7 +116,18 @@ doesn't start with a leading slash.
 
 It doesn't handle file not found errors properly :-(
 
-=head1 SEE ALSO
+=head1 AUTHOR
+
+Dotan Dimet, C<dotan@corky.net>.
+
+=head1 COPYRIGHT
+
+Copyright (C) 2010, Dotan Dimet.
+
+This program is free software, you can redistribute it and/or modify it under
+the same terms as Perl 5.10.
+
+==head1 SEE ALSO
 
 L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicious.org>.
 
