@@ -89,7 +89,7 @@ Mojolicious::Plugin::Alias - serve static files from aliased paths
 
 =head1 SYNOPSIS
 
-    $self->  # Mojolicious
+    # Mojolicious
     $self->plugin('alias', { '/images' => '/foo/bar/dir/images',
                              '/css' => '/here/docs/html/css' } );
 
