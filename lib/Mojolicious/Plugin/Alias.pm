@@ -6,7 +6,7 @@ use warnings;
 use Mojo::Base 'Mojolicious::Plugin';
 
 
-our $VERSION = 'v0.0.2';
+our $VERSION = 'v0.0.5';
 
 our $aliases = {};
 our $saved_static_dispatcher;
@@ -94,27 +94,38 @@ Mojolicious::Plugin::Alias - serve static files from aliased paths
                              '/css' => '/here/docs/html/css' } );
 
     # Mojolicious::Lite
-    plugin alias => { '/images' => '/ftp/pub/images' };
+    plugin alias => { '/people/fry/photos' => '/data/foo/frang' };
+
+    # statics embedded in __DATA__
+    plugin alias => { '/people' => {classes => ['main']} };
+
+    # multiple paths also possible
+    plugin alias => { '/people/leela/photos' =>
+        { paths => [
+                     '/data/foo/zoop',
+                     '/data/bar/public'
+                   ] } };
+
 
 =head1 DESCRIPTION
 
-L<Mojolicious::Plugin::Alias> extends the MojoX dispatcher for static files to
-serve files from either a root directory or using a set of aliases that map URL
-path parts to directories on the server.
+L<Mojolicious::Plugin::Alias> lets you map specific routes to collections
+of static files. While by default a Mojolicious app will serve static files
+located in any directory in the C<app->static->paths> array, 
+L<Mojolicious::Plugin::Alias> will set up a seperate Mojolicious::Static
+object to serve files according to the specified prefix in the URL path.
 
 When developing with the stand-alone webserver, this module allows you to
-mimic server paths that might be used in your templates. 
+mimic server paths that might be used in your templates.
 
 =head1 CONFIGURATION
 
 When installing the plugin, pass a reference to a hash of aliases (server
-paths) and the directories to map to them. Installing the plugin
-($plugin->register) will fail if these paths can't be found, or if the alias
-doesn't start with a leading slash.
-
-=head1 BUGS
-
-It doesn't handle file not found errors properly :-(
+paths). The keys of the hash are URL path prefixes and must start with a '/'
+( leading slash). The values of the hash can be either directory paths (a
+single string) or hash references that will initialize L<Mojolicious::Static>
+objects - they must have either C<paths> or C<classes> keys, with array reference
+values.
 
 =head1 AUTHOR
 
@@ -122,10 +133,11 @@ Dotan Dimet, C<dotan@corky.net>.
 
 =head1 COPYRIGHT
 
-Copyright (C) 2010, Dotan Dimet.
+Copyright (C) 2010,2014, Dotan Dimet.
 
-This program is free software, you can redistribute it and/or modify it under
-the same terms as Perl 5.10.
+=head1 LICENSE
+
+Artistic 2.0
 
 ==head1 SEE ALSO
 
