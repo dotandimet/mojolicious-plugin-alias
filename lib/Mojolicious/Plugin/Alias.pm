@@ -6,7 +6,7 @@ use warnings;
 use Mojo::Base 'Mojolicious::Plugin';
 
 
-our $VERSION = 'v0.0.5';
+our $VERSION = '0.0.4';
 
 our $aliases = {};
 our $saved_static_dispatcher;
