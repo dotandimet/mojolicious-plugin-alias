@@ -5,7 +5,7 @@ use base Mojolicious::Plugin;
 use strict;
 use warnings;
 
-our $VERSION = 'v0.0.1';
+our $VERSION = 'v0.0.2';
 
 __PACKAGE__->attr(  [ '_aliases', '_dispatchers' ] => sub { {} } );
 __PACKAGE__->attr(  '_saved_static_dispatcher'     => undef );
