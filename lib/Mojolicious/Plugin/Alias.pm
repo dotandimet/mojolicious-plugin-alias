@@ -1,30 +1,35 @@
 package Mojolicious::Plugin::Alias;
 
-use base Mojolicious::Plugin;
-
 use strict;
 use warnings;
 
+use Mojo::Base 'Mojolicious::Plugin';
+
+
 our $VERSION = 'v0.0.2';
 
-__PACKAGE__->attr(  [ '_aliases', '_dispatchers' ] => sub { {} } );
-__PACKAGE__->attr(  '_saved_static_dispatcher'     => undef );
+our $aliases = {};
+our $saved_static_dispatcher;
 
 sub aliases {
     my ($self) = @_;
-    my %by_lengths = map { $_ => length $_ } keys %{$self->_aliases};
-    my @aliases = sort { $by_lengths{$b} <=> $by_lengths{$a} } keys %{$self->_aliases};
+    my %by_lengths = map { $_ => length $_ } keys %$aliases;
+    my @aliases = sort { $by_lengths{$b} <=> $by_lengths{$a} } keys %$aliases;
     return @aliases;
 }
 
 sub alias {
-    my ($self, $alias, $path) = @_;
-    if ( $alias && $alias =~ m{^/.*}
-                && $path && -d $path ) {
-     $self->_aliases->{$alias} = $path;   
+    my $self  = shift;
+    my $alias = shift;
+    return unless ( $alias && $alias =~ m{^/.*} );
+    if (@_ > 0) {
+      my @args = (@_ == 1 && ! ref $_[0]) 
+               ? (paths => [ @_ ])
+               : @_ ;
+      $aliases->{$alias} = Mojolicious::Static->new(@args);
     }
-    if ($alias && exists $self->_aliases->{$alias}) {
-        return $self->_aliases->{$alias};
+    if ($alias && exists $aliases->{$alias}) {
+        return $aliases->{$alias};
     }
     return;
 }
@@ -33,48 +38,43 @@ sub match {
     my ($self, $req_path) = @_;
     foreach my $alias ($self->aliases) {
         if ($req_path =~ /^$alias.*/) {
+            # print STDERR "$req_path matches $alias";
             return $alias;
         }
     }
     return;
 }
 
-sub dispatcher {
-    my ( $self, $alias ) = @_;
-    return ( $self->_dispatchers->{$alias} )
-      ? $self->_dispatchers->{$alias}
-      : $self->_dispatchers->{$alias} = MojoX::Dispatcher::Static->new(
-        root   => $self->alias($alias),
-        prefix => $alias
-      );
-}
 
 sub register {
     my ($self, $app, $conf) = @_;
 
     if ($conf) {
-        while(my ($alias, $path) = each %$conf) {
-            die "Path $path not found, can't map $alias to it\n"
-                unless ($self->alias($alias, $path) );
+        while(my ($alias, $def) = each %$conf) {
+           $self->alias($alias, $def);
         }
     };
 
-    $app->plugins->add_hook(
+    $app->hook(
         before_dispatch => sub {
-            shift; # goodbye, plugins
             my ($c) = @_;
             my $req_path = $c->req->url->path;
             return unless (my $alias = $self->match($req_path));
-            my $dispatcher = $self->dispatcher($alias);
-            $self->_saved_static_dispatcher($c->app->static);
+            # rewrite req_path
+            $req_path =~ s/^$alias//;
+            $c->req->url->path($req_path);
+            # change static
+            my $dispatcher = $self->alias($alias);
+            $saved_static_dispatcher = $c->app->static;
             $c->app->static($dispatcher);
             # Pushy? 
-        } )->add_hook(
-        after_static_dispatch => sub {
-            shift; # goodbye, plugins
+        } );
+     $app->hook(
+        after_static => sub {
             my ($c) = @_;
-            if ($self->_saved_static_dispatcher) {
-                $c->app->static($self->_saved_static_dispatcher);
+            if ($saved_static_dispatcher) {
+                $c->app->static($saved_static_dispatcher);
+                $saved_static_dispatcher = undef;
             }
         } );
 }
