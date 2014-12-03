@@ -7,48 +7,65 @@ use FindBin;
 use File::Spec::Functions;
 
 get '/' => 'front';
-# plugin alias => { '/people/fry/photos' => $FindBin::Bin };
 
+# plugin alias => { '/people/fry/photos' => $FindBin::Bin };
 
 # plugin alias => { '/people/fry/photos' => $FindBin::Bin };
 
 my $t = Test::Mojo->new(app);
-$t->app->static->paths([catdir($FindBin::Bin, 'public')]);
+$t->app->static->paths( [ catdir( $FindBin::Bin, 'public' ) ] );
 
-plugin alias => { '/people' => {classes => ['main']} }; # order doesn't really matter - ?
-plugin alias => { '/people/fry/photos' => catdir($FindBin::Bin, 'kang', 'kodos') };
-plugin alias => { '/people/leela' => { paths => [ catdir($FindBin::Bin, 'kang') ] } };
-plugin alias => { '/people/leela/photos' =>
-      { paths => [
-                   catdir( $FindBin::Bin, 'kang', 'kodos' ),
-                   catdir( $FindBin::Bin, 'public' )
-                 ] } };
+plugin alias =>
+  { '/people' => { classes => ['main'] } };    # order doesn't really matter - ?
+plugin alias =>
+  { '/people/fry/photos' => catdir( $FindBin::Bin, 'kang', 'kodos' ) };
+plugin alias =>
+  { '/people/leela' => { paths => [ catdir( $FindBin::Bin, 'kang' ) ] } };
+plugin alias => {
+    '/people/leela/photos' => {
+        paths => [
+            catdir( $FindBin::Bin, 'kang', 'kodos' ),
+            catdir( $FindBin::Bin, 'public' )
+        ]
+    }
+};
 
-plugin alias => { '/people/bender/photos' =>
-      { paths => [
-                   catdir( $FindBin::Bin, 'public' ),
-                   catdir( $FindBin::Bin, 'kang', 'kodos' )
-                 ] } };
-plugin  alias => { '/images' => catdir( $FindBin::Bin, 'kang', 'kodos' ),
-                   '/css' =>  catdir($FindBin::Bin, 'kang') } ;
+plugin alias => {
+    '/people/bender/photos' => {
+        paths => [
+            catdir( $FindBin::Bin, 'public' ),
+            catdir( $FindBin::Bin, 'kang', 'kodos' )
+        ]
+    }
+};
+plugin alias => {
+    '/images' => catdir( $FindBin::Bin, 'kang', 'kodos' ),
+    '/css'    => catdir( $FindBin::Bin, 'kang' )
+};
 
-$t->get_ok('/')->content_like(qr/Phone Numbers/);
+$t->get_ok('/')->content_like( qr/Phone Numbers/, 'template' );
 for my $path (qw(/cat.png /people/fry/photos/cat.png)) {
-     $t->get_ok($path)->status_is(200)->content_type_is('image/png');
+    $t->get_ok($path)->status_is(200)
+      ->content_type_is( 'image/png', "image $path in aliased dir" );
 }
 
-$t->get_ok('/say.txt')->content_is("GLOOM\n");
-$t->get_ok('/people/leela/say.txt')->content_is("DOOM\n");
+$t->get_ok('/say.txt')->content_is( "GLOOM\n", 'static file in public' );
+$t->get_ok('/people/leela/say.txt')
+  ->content_is( "DOOM\n", 'file in aliased dir' );
 
-
-$t->get_ok('/people/say.txt')->status_is(200)->content_is("ROOM!\n");
+$t->get_ok('/people/say.txt')->status_is(200)
+  ->content_is( "ROOM!\n", 'aliased static from class' );
 $t->get_ok('/people/leela/photos/cat.png')->status_is(200);
-$t->get_ok('/people/leela/photos/cat.json')->status_is(200)->json_is('/mood', 'grumpy');
+$t->get_ok('/people/leela/photos/cat.json')->status_is(200)
+  ->json_is( '/mood', 'grumpy' );
 
 $t->get_ok('/people/bender/photos/cat.png')->status_is(200);
-$t->get_ok('/people/bender/photos/cat.json')->status_is(200)->json_is('/mood', 'happy');
+$t->get_ok('/people/bender/photos/cat.json')->status_is(200)
+  ->json_is( '/mood', 'happy' );
+
 # file not found - should return file not found error
-$t->get_ok('/people/bender/photos/cat.jpg')->status_is(404);
+$t->get_ok('/people/bender/photos/cat.jpg')
+  ->status_is( 404, 'file not found test' );
 $t->get_ok('/images/cat.png')->status_is(200);
 $t->get_ok('/css/say.txt')->status_is(200)->content_is("DOOM\n");
 
