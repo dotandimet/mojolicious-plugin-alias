@@ -10,6 +10,7 @@ our $VERSION = '0.0.4';
 
 our $aliases = {};
 our $saved_static_dispatcher;
+our $set_hooks = undef;
 
 sub aliases {
     my ($self) = @_;
@@ -55,16 +56,20 @@ sub register {
         }
     };
 
+    unless ($set_hooks) {
     $app->hook(
         before_dispatch => sub {
             my ($c) = @_;
             my $req_path = $c->req->url->path;
             return unless (my $alias = $self->match($req_path));
-            # rewrite req_path
             $req_path =~ s/^$alias//;
+            my $dispatcher = $self->alias($alias);
+            # verify the file exists - so we can co-exist with overlapping
+            # routes?
+#            return unless ($dispatcher->file($req_path));
+            # rewrite req_path
             $c->req->url->path($req_path);
             # change static
-            my $dispatcher = $self->alias($alias);
             $saved_static_dispatcher = $c->app->static;
             $c->app->static($dispatcher);
             # Pushy? 
@@ -77,6 +82,8 @@ sub register {
                 $saved_static_dispatcher = undef;
             }
         } );
+     $set_hooks = 1; # don't add the hooks again
+    }
 }
 
 
