@@ -16,21 +16,21 @@ my $t = Test::Mojo->new(app);
 $t->app->static->paths([catdir($FindBin::Bin, 'public')]);
 
 plugin alias => { '/people' => {classes => ['main']} }; # order doesn't really matter - ?
-plugin alias => { '/people/fry/photos' => catdir($FindBin::Bin, 'frang', 'zoop') };
-plugin alias => { '/people/leela' => { paths => [ catdir($FindBin::Bin, 'frang') ] } };
+plugin alias => { '/people/fry/photos' => catdir($FindBin::Bin, 'kang', 'kodos') };
+plugin alias => { '/people/leela' => { paths => [ catdir($FindBin::Bin, 'kang') ] } };
 plugin alias => { '/people/leela/photos' =>
       { paths => [
-                   catdir( $FindBin::Bin, 'frang', 'zoop' ),
+                   catdir( $FindBin::Bin, 'kang', 'kodos' ),
                    catdir( $FindBin::Bin, 'public' )
                  ] } };
 
 plugin alias => { '/people/bender/photos' =>
       { paths => [
                    catdir( $FindBin::Bin, 'public' ),
-                   catdir( $FindBin::Bin, 'frang', 'zoop' )
+                   catdir( $FindBin::Bin, 'kang', 'kodos' )
                  ] } };
-plugin  alias => { '/images' => catdir( $FindBin::Bin, 'frang', 'zoop' ),
-                   '/css' =>  catdir($FindBin::Bin, 'frang') } ;
+plugin  alias => { '/images' => catdir( $FindBin::Bin, 'kang', 'kodos' ),
+                   '/css' =>  catdir($FindBin::Bin, 'kang') } ;
 
 $t->get_ok('/')->content_like(qr/Phone Numbers/);
 for my $path (qw(/cat.png /people/fry/photos/cat.png)) {
