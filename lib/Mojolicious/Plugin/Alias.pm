@@ -14,7 +14,7 @@ our $saved_static_dispatcher;
 sub aliases {
     my ($self) = @_;
     my %by_lengths = map { $_ => length $_ } keys %$aliases;
-    my @aliases = sort { $by_lengths{$b} <=> $by_lengths{$a} } keys %$aliases;
+    my @aliases = sort { $by_lengths{$b} <=> $by_lengths{$a} || $a cmp $b } keys %$aliases;
     return @aliases;
 }
 
@@ -37,7 +37,7 @@ sub alias {
 sub match {
     my ($self, $req_path) = @_;
     foreach my $alias ($self->aliases) {
-        if ($req_path =~ /^$alias.*/) {
+        if ($req_path->contains($alias)) {
             # print STDERR "$req_path matches $alias";
             return $alias;
         }
