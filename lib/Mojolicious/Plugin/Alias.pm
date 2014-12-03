@@ -139,7 +139,7 @@ Copyright (C) 2010,2014, Dotan Dimet.
 
 Artistic 2.0
 
-==head1 SEE ALSO
+=head1 SEE ALSO
 
 L<Mojolicious>, L<Mojolicious::Guides>, L<http://mojolicious.org>.
 
