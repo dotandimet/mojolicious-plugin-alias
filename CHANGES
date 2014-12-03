@@ -1,3 +1,8 @@
+0.0.5 - ???
+ - cleanup
+ - set hooks only once
+ - added test for alias that overlaps route, currently failing
+
 0.0.4 - 25-05-2014
  - Updated to Mojolicious 4.xx (5.0)
  - Initial release
