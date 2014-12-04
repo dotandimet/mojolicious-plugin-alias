@@ -43,9 +43,9 @@ my $t = Test::Mojo->new('AliasTest');
 
 $t->get_ok('/')->content_is('BOOM!');
 # dynamic route
-$t->get_ok('/people/leela/gloom')->content_is('gloom');
+$t->get_ok('/people/leela/gloom')->content_is('gloom', 'route overlapping alias');
 # static file via alias plugin
-$t->get_ok('/people/leela/say.txt')->content_is("DOOM\n");
+$t->get_ok('/people/leela/say.txt')->content_is("DOOM\n", 'static file via alias');
 
 done_testing();
 
