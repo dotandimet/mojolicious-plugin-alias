@@ -46,43 +46,29 @@ sub match {
     return;
 }
 
+sub make_alias {
+  my ($self, $routes, $alias, @args) = @_;
+  my $route = Mojo::Path->new($alias)->merge('*alias_file')->to_route;
+  my $dispatcher = Mojolicious::Static->new(@args);
+  $routes->get($route)->to(cb => sub {
+      my $c = shift;
+      my $file = $c->stash('alias_file');
+      return !!$c->rendered if $dispatcher->serve($c, $file);
+      $c->app->log->debug(qq{File "$file" not found, invalid alias at "$route"?});
+      return !$c->render_not_found;
+  });
+}
+
+
 
 sub register {
-    my ($self, $app, $conf) = @_;
-
+    my ( $self, $app, $conf, $route ) = @_;
+    $route = $app->routes unless ($route);
     if ($conf) {
-        while(my ($alias, $def) = each %$conf) {
-           $self->alias($alias, $def);
+        while ( my ( $alias, $def ) = each %$conf ) {
+            my @args = ( !ref $def ) ? ( paths => [$def] ) : ($def);
+            $self->make_alias( $route, $alias, @args );
         }
-    };
-
-    unless ($set_hooks) {
-    $app->hook(
-        before_dispatch => sub {
-            my ($c) = @_;
-            my $req_path = $c->req->url->path;
-            return unless (my $alias = $self->match($req_path));
-            $req_path =~ s/^$alias//;
-            my $dispatcher = $self->alias($alias);
-            # verify the file exists - so we can co-exist with overlapping
-            # routes?
-#            return unless ($dispatcher->file($req_path));
-            # rewrite req_path
-            $c->req->url->path($req_path);
-            # change static
-            $saved_static_dispatcher = $c->app->static;
-            $c->app->static($dispatcher);
-            # Pushy? 
-        } );
-     $app->hook(
-        after_static => sub {
-            my ($c) = @_;
-            if ($saved_static_dispatcher) {
-                $c->app->static($saved_static_dispatcher);
-                $saved_static_dispatcher = undef;
-            }
-        } );
-     $set_hooks = 1; # don't add the hooks again
     }
 }
 
