@@ -1,50 +1,9 @@
 package Mojolicious::Plugin::Alias;
 
-use strict;
-use warnings;
-
 use Mojo::Base 'Mojolicious::Plugin';
 
 
-our $VERSION = '0.0.5';
-
-our $aliases = {};
-our $saved_static_dispatcher;
-our $set_hooks = undef;
-
-sub aliases {
-    my ($self) = @_;
-    my %by_lengths = map { $_ => length $_ } keys %$aliases;
-    my @aliases = sort { $by_lengths{$b} <=> $by_lengths{$a} || $a cmp $b } keys %$aliases;
-    return @aliases;
-}
-
-sub alias {
-    my $self  = shift;
-    my $alias = shift;
-    return unless ( $alias && $alias =~ m{^/.*} );
-    if (@_ > 0) {
-      my @args = (@_ == 1 && ! ref $_[0]) 
-               ? (paths => [ @_ ])
-               : @_ ;
-      $aliases->{$alias} = Mojolicious::Static->new(@args);
-    }
-    if ($alias && exists $aliases->{$alias}) {
-        return $aliases->{$alias};
-    }
-    return undef;
-}
-
-sub match {
-    my ($self, $req_path) = @_;
-    foreach my $alias ($self->aliases) {
-        if ($req_path->contains($alias)) {
-            # print STDERR "$req_path matches $alias";
-            return $alias;
-        }
-    }
-    return undef;
-}
+our $VERSION = '1.0.0';
 
 sub make_alias {
   my ($self, $routes, $alias, @args) = @_;
@@ -58,8 +17,6 @@ sub make_alias {
       return !$c->reply->not_found;
   });
 }
-
-
 
 sub register {
     my ( $self, $app, $conf, $route ) = @_;
@@ -126,7 +83,7 @@ Dotan Dimet, C<dotan@corky.net>.
 
 =head1 COPYRIGHT
 
-Copyright (C) 2010,2014, Dotan Dimet.
+Copyright (C) 2010,2014,2016 Dotan Dimet.
 
 =head1 LICENSE
 
