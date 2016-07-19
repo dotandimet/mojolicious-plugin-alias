@@ -6,7 +6,7 @@ use warnings;
 use Mojo::Base 'Mojolicious::Plugin';
 
 
-our $VERSION = '0.0.4';
+our $VERSION = '0.0.5';
 
 our $aliases = {};
 our $saved_static_dispatcher;
@@ -32,7 +32,7 @@ sub alias {
     if ($alias && exists $aliases->{$alias}) {
         return $aliases->{$alias};
     }
-    return;
+    return undef;
 }
 
 sub match {
@@ -43,19 +43,19 @@ sub match {
             return $alias;
         }
     }
-    return;
+    return undef;
 }
 
 sub make_alias {
   my ($self, $routes, $alias, @args) = @_;
-  my $route = Mojo::Path->new($alias)->merge('*alias_file')->to_route;
+  my $route = Mojo::Path->new($alias)->trailing_slash(1)->merge('*alias_file')->to_route;
   my $dispatcher = Mojolicious::Static->new(@args);
   $routes->get($route)->to(cb => sub {
       my $c = shift;
       my $file = $c->stash('alias_file');
       return !!$c->rendered if $dispatcher->serve($c, $file);
       $c->app->log->debug(qq{File "$file" not found, invalid alias at "$route"?});
-      return !$c->render_not_found;
+      return !$c->reply->not_found;
   });
 }
 

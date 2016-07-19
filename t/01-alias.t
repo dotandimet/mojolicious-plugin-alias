@@ -16,11 +16,7 @@ my $t = Test::Mojo->new(app);
 $t->app->static->paths( [ catdir( $FindBin::Bin, 'public' ) ] );
 
 plugin alias =>
-  { '/people' => { classes => ['main'] } };    # order doesn't really matter - ?
-plugin alias =>
   { '/people/fry/photos' => catdir( $FindBin::Bin, 'kang', 'kodos' ) };
-plugin alias =>
-  { '/people/leela' => { paths => [ catdir( $FindBin::Bin, 'kang' ) ] } };
 plugin alias => {
     '/people/leela/photos' => {
         paths => [
@@ -30,6 +26,8 @@ plugin alias => {
     }
 };
 
+plugin alias =>
+  { '/people/leela' => { paths => [ catdir( $FindBin::Bin, 'kang' ) ] } };
 plugin alias => {
     '/people/bender/photos' => {
         paths => [
@@ -38,6 +36,8 @@ plugin alias => {
         ]
     }
 };
+plugin alias =>
+  { '/people' => { classes => ['main'] } };    # order MATTERS now because we are using ROUTES
 plugin alias => {
     '/images' => catdir( $FindBin::Bin, 'kang', 'kodos' ),
     '/css'    => catdir( $FindBin::Bin, 'kang' )
